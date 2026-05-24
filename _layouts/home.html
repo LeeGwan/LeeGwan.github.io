@@ -1,0 +1,33 @@
+---
+layout: default
+---
+{% assign lang = page.lang | default: site.default_lang %}
+{% assign t = site.data.translations[lang] %}
+{% if lang == 'ko' %}{% assign docs = site.ko %}{% else %}{% assign docs = site.en %}{% endif %}
+
+<div class="home-head">
+  <h1>{{ page.title | default: site.title }}</h1>
+  {% if page.tagline %}<p class="home-tagline">{{ page.tagline }}</p>{% endif %}
+</div>
+
+{{ content }}
+
+<h2 class="section-label">{{ t.recent }}</h2>
+
+{% assign posts = docs | sort: "date" | reverse %}
+{% if posts.size == 0 %}
+  <p class="side-empty">{{ t.no_posts }}</p>
+{% else %}
+<ul class="post-list">
+  {% for post in posts %}
+  <li class="post-list-item">
+    <a class="pli-title" href="{{ post.url | relative_url }}">{{ post.title }}</a>
+    <div class="pli-meta">
+      {% if post.date %}<time>{{ post.date | date: "%b %d, %Y" }}</time>{% endif %}
+      {% if post.tags %} <span class="meta-sep">·</span> {{ post.tags | join: ", " }}{% endif %}
+    </div>
+    {% if post.summary %}<p class="pli-summary">{{ post.summary }}</p>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

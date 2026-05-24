@@ -1,0 +1,39 @@
+# ============================================================
+#  화면에 나오는 "버튼/라벨" 같은 UI 문구들의 번역
+#  글 내용이 아니라, 사이트 틀에 들어가는 고정 단어들입니다.
+# ============================================================
+en:
+  home: "Home"
+  posts: "Posts"
+  about: "About"
+  github: "GitHub"
+  tags: "Tags"
+  all_posts: "All Posts"
+  recent: "Recent Posts"
+  on_this_page: "On this page"
+  written_on: "Written on"
+  tagged: "Tagged"
+  search_placeholder: "Search..."
+  no_posts: "No posts yet. Add your first post to the _en folder!"
+  footer_rights: "All rights reserved."
+  read_more: "Read more"
+  lang_label: "한국어"          # 영어 화면에 보이는 토글 버튼 글자
+  no_translation: "Korean version not available yet."
+
+ko:
+  home: "홈"
+  posts: "글 목록"
+  about: "소개"
+  github: "깃허브"
+  tags: "태그"
+  all_posts: "전체 글"
+  recent: "최근 글"
+  on_this_page: "목차"
+  written_on: "작성일"
+  tagged: "태그"
+  search_placeholder: "검색..."
+  no_posts: "아직 글이 없습니다. _ko 폴더에 첫 글을 추가해보세요!"
+  footer_rights: "All rights reserved."
+  read_more: "더 보기"
+  lang_label: "ENG"             # 한글 화면에 보이는 토글 버튼 글자
+  no_translation: "영어 버전이 아직 없습니다."

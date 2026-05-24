@@ -1,0 +1,21 @@
+{% assign lang = page.lang | default: site.default_lang %}
+{% assign t = site.data.translations[lang] %}
+{% if lang == 'ko' %}{% assign base = '/ko/' %}{% else %}{% assign base = '/' %}{% endif %}
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="brand" href="{{ base | relative_url }}">
+      <span class="brand-mark">▟</span> {{ site.title }}
+    </a>
+
+    <button class="nav-burger" id="navBurger" aria-label="menu">☰</button>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="{{ base | relative_url }}">{{ t.home }}</a></li>
+      <li><a href="{{ base | append: 'about/' | relative_url }}">{{ t.about }}</a></li>
+      <li><a href="{{ base | append: 'tags/' | relative_url }}">{{ t.tags }}</a></li>
+      <li><a href="https://github.com/{{ site.github_username }}" target="_blank" rel="noopener">{{ t.github }}</a></li>
+      <li class="nav-lang">{% include lang-switch.html %}</li>
+    </ul>
+  </div>
+</nav>

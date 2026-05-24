@@ -1,0 +1,39 @@
+{% comment %}
+  현재 언어의 글들을 category 별로 묶어 사이드바에 자동으로 표시합니다.
+  글 front matter 에 category 와 weight(정렬용 숫자)를 넣으면 여기에 반영됩니다.
+  새 글을 추가하면 사이드바에도 자동으로 나타납니다 — 따로 손댈 필요 없음.
+{% endcomment %}
+{% assign lang = page.lang | default: site.default_lang %}
+{% assign t = site.data.translations[lang] %}
+{% if lang == 'ko' %}{% assign docs = site.ko %}{% else %}{% assign docs = site.en %}{% endif %}
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-title">{{ site.title }}</div>
+
+  {% assign groups = docs | group_by: "category" %}
+  {% for group in groups %}
+    {% assign label = group.name %}
+    {% if label == '' or label == nil %}{% assign label = t.posts %}{% endif %}
+    {% comment %} 현재 보고 있는 글이 이 그룹에 속하면 펼친 상태로 시작 {% endcomment %}
+    {% assign is_open = false %}
+    {% for item in group.items %}{% if item.url == page.url %}{% assign is_open = true %}{% endif %}{% endfor %}
+
+    <div class="side-group {% if is_open %}open{% endif %}">
+      <button class="side-group-head" type="button">
+        <span>{{ label }}</span><span class="caret">▸</span>
+      </button>
+      <ul class="side-list">
+        {% assign sorted = group.items | sort: "weight" %}
+        {% for item in sorted %}
+          <li class="{% if item.url == page.url %}active{% endif %}">
+            <a href="{{ item.url | relative_url }}">{{ item.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+
+  {% if docs.size == 0 %}
+    <p class="side-empty">{{ t.no_posts }}</p>
+  {% endif %}
+</aside>

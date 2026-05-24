@@ -1,0 +1,58 @@
+# ============================================================
+#  Flect Security Lab  -  사이트 전역 설정
+#  이 파일을 고치면 사이트 전체가 바뀝니다. (수정 후 서버 재시작 필요)
+# ============================================================
+
+title: "Flect Security Lab"
+description: "Security research, reverse engineering, and study notes."
+author: "Flect"
+
+# GitHub Pages 배포용 주소.
+#  - 저장소 이름이  <아이디>.github.io  이면 baseurl 은 "" 로 둡니다.
+#  - 저장소 이름이  blog  처럼 다른 이름이면  baseurl: "/blog"  로 바꿉니다.
+url: ""
+baseurl: ""
+
+# 기본 언어 (메인은 영어)
+default_lang: "en"
+
+# 연락처 / 링크 (footer, nav 에서 사용)
+github_username: "your-id"        # << 본인 GitHub 아이디로 바꾸세요
+email: "you@example.com"          # << 본인 이메일로 바꾸세요
+
+# ------------------------------------------------------------
+#  글(포스트) 컬렉션 : 언어별로 폴더를 나눕니다.
+#    _en  폴더 → 영어 글  → /posts/글이름/
+#    _ko  폴더 → 한글 글  → /ko/posts/글이름/
+# ------------------------------------------------------------
+collections:
+  en:
+    output: true
+    permalink: /posts/:name/
+  ko:
+    output: true
+    permalink: /ko/posts/:name/
+
+# ------------------------------------------------------------
+#  기본값 : 폴더에 따라 레이아웃과 언어를 자동으로 붙여줍니다.
+#  덕분에 글마다 layout, lang 을 매번 안 써도 됩니다.
+# ------------------------------------------------------------
+defaults:
+  - scope: { path: "", type: "en" }
+    values: { layout: "post", lang: "en" }
+  - scope: { path: "", type: "ko" }
+    values: { layout: "post", lang: "ko" }
+
+# 마크다운 / 코드 하이라이팅 (GitHub Pages 기본값과 동일)
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# 빌드에서 제외할 파일들
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor

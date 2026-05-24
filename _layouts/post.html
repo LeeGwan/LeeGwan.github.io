@@ -1,0 +1,35 @@
+---
+layout: default
+---
+{% assign lang = page.lang | default: site.default_lang %}
+{% assign t = site.data.translations[lang] %}
+
+<article class="post">
+  <header class="post-head">
+    <h1 class="post-title">{{ page.title }}</h1>
+    <p class="post-meta">
+      {% if page.date %}<time>{{ page.date | date: "%b %d, %Y" }}</time>{% endif %}
+      {% if page.tags and page.tags.size > 0 %}
+        <span class="meta-sep">/</span>
+        {% if lang == 'ko' %}{% assign tagbase = '/ko/tags/' %}{% else %}{% assign tagbase = '/tags/' %}{% endif %}
+        {% for tag in page.tags %}<a class="meta-tag" href="{{ tagbase | relative_url }}#{{ tag | slugify }}">{{ tag }}</a>{% unless forloop.last %}, {% endunless %}{% endfor %}
+      {% endif %}
+    </p>
+  </header>
+
+  {% if page.summary %}
+  <div class="summary"><strong>Summary:</strong> {{ page.summary }}</div>
+  {% endif %}
+
+  {% comment %} 본문에  * TOC\n{:toc}  가 있으면 kramdown 이 목차를 자동 생성합니다 {% endcomment %}
+  <div class="post-body">
+    {{ content }}
+  </div>
+
+  {% if page.tags and page.tags.size > 0 %}
+  <div class="post-tags">
+    <strong>{{ t.tags }}:</strong>
+    {% for tag in page.tags %}<a class="tag-chip" href="{% if lang == 'ko' %}{{ '/ko/tags/' | relative_url }}{% else %}{{ '/tags/' | relative_url }}{% endif %}#{{ tag | slugify }}">{{ tag }}</a>{% endfor %}
+  </div>
+  {% endif %}
+</article>

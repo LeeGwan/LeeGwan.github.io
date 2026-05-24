@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.default_lang }}">
+{% include head.html %}
+<body>
+  {% include topnav.html %}
+  <main class="layout">
+    {% include sidebar.html %}
+    <div class="content">
+      {{ content }}
+    </div>
+  </main>
+  {% include footer.html %}
+  <script src="{{ '/assets/js/sidebar.js' | relative_url }}"></script>
+</body>
+</html>
