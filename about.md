@@ -31,6 +31,7 @@ no_sidebar: true
       <li>Cheat program analysis &amp; research</li>
       <li>Anti-Cheat solution detection analysis &amp; research</li>
       <li>Windows Code Integrity &amp; kernel anti-debugging bypass research</li>
+      <li>Oreans Code Virtualization research</li>
     </ul>
 
     <h2>Jobs</h2>
