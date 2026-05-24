@@ -6,19 +6,17 @@ permalink: /ko/posts/
 title: "글 목록"
 no_sidebar: true
 ---
-{% assign docs = site.en %}
+{% assign docs = site.ko %}
 <article class="post tags-index">
-  <header class="post-head"><h1 class="post-title">Posts</h1></header>
+  <header class="post-head"><h1 class="post-title">글 목록</h1></header>
 
   {% assign groups = docs | group_by: "category" %}
   {% for g in groups %}
-    {% assign label = g.name %}
-    {% if label == '' or label == nil %}{% assign label = "Uncategorized" %}{% endif %}
-    
+    {% assign label = g.name %}{% if label == '' or label == nil %}{% assign label = "미분류" %}{% endif %}
     <h2 id="{{ label | slugify }}">{{ label }}</h2>
-    
     <ul>
-      {% for post in g.items %}
+      {% assign items = g.items | sort: "weight" %}
+      {% for post in items %}
         <li>
           <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
           <span class="pli-meta">— {{ post.date | date: "%b %d, %Y" }}</span>
