@@ -17,8 +17,8 @@ baseurl: ""
 default_lang: "en"
 
 # 연락처 / 링크 (footer, nav 에서 사용)
-github_username: "your-id"        # << 본인 GitHub 아이디로 바꾸세요
-email: "you@example.com"          # << 본인 이메일로 바꾸세요
+github_username: "LeeGwanHo"        # << 본인 GitHub 아이디로 바꾸세요
+email: "tlkj12@gmail.com"          # << 본인 이메일로 바꾸세요
 
 # ------------------------------------------------------------
 #  글(포스트) 컬렉션 : 언어별로 폴더를 나눕니다.
