@@ -1,6 +1,6 @@
 ---
 layout: default
-lang: en
+lang: ko
 ref: about
 permalink: /about/
 title: "About Me"
