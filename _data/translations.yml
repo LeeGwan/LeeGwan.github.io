@@ -4,8 +4,8 @@
 # ============================================================
 en:
   home: "Home"
-  posts: "Posts"
   about: "About"
+  posts: "Posts"
   github: "GitHub"
   tags: "Tags"
   all_posts: "All Posts"
@@ -22,8 +22,8 @@ en:
 
 ko:
   home: "홈"
-  posts: "글 목록"
   about: "소개"
+  posts: "글 목록"
   github: "깃허브"
   tags: "태그"
   all_posts: "전체 글"
