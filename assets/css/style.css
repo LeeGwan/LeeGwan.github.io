@@ -300,3 +300,26 @@ a:hover { text-decoration: underline; }
   .nav-drop.open .nav-menu { display: block; }
   .content-wide { padding: 28px 0 60px; }
 }
+
+/* ---------- About / profile page ---------- */
+.profile-card {
+  display: flex; gap: 28px; align-items: center;
+  padding: 8px 0 28px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.profile-img {
+  width: 150px; height: 150px; object-fit: cover;
+  border-radius: 14px; border: 1px solid var(--line); flex-shrink: 0;
+}
+.profile-name { font-size: 1.4rem; font-weight: 700; margin: 0 0 12px; border: 0; padding: 0; }
+.profile-nick { color: var(--accent); font-weight: 600; font-size: 1.05rem; }
+.profile-list { list-style: none; margin: 0; padding: 0; }
+.profile-list li { margin: 5px 0; font-size: .95rem; color: var(--ink-soft); }
+.profile-list .pk {
+  display: inline-block; min-width: 92px; color: var(--muted);
+  font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em;
+}
+.profile-page .post-body h2 { font-size: 1.2rem; margin-top: 30px; }
+@media (max-width: 600px) {
+  .profile-card { flex-direction: column; align-items: flex-start; gap: 18px; }
+}
