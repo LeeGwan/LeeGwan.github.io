@@ -12,19 +12,18 @@ no_sidebar: true
 
   {% assign groups = docs | group_by: "category" %}
   {% for g in groups %}
-    {% assign label = g.name %}{% if label == '' or label == nil %}{% assign label = "Posts" %}{% endif %}
+    {% assign label = g.name %}
+    {% if label == '' or label == nil %}{% assign label = "Uncategorized" %}{% endif %}
+    
     <h2 id="{{ label | slugify }}">{{ label }}</h2>
+    
     <ul>
-      {% assign items = g.items | sort: "weight" %}
-      {% for post in items %}
+      {% for post in g.items %}
         <li>
           <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
           <span class="pli-meta">— {{ post.date | date: "%b %d, %Y" }}</span>
-          {% if post.summary %}<div class="pli-summary">{{ post.summary }}</div>{% endif %}
         </li>
       {% endfor %}
     </ul>
   {% endfor %}
-
-  {% if groups.size == 0 %}<p class="side-empty">No posts yet.</p>{% endif %}
 </article>
