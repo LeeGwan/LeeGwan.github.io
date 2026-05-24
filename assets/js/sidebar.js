@@ -14,17 +14,15 @@ if (burger && links) {
   });
 }
 
-// Posts 드롭다운: 모바일/클릭 토글 (데스크톱은 hover로도 열림)
+// Posts 드롭다운: 클릭하면 열리고, 다시 누르면 닫힘 (페이지 이동 없음)
 var drop = document.getElementById('postsDrop');
 if (drop) {
   var toggle = drop.querySelector('.nav-drop-toggle');
   toggle.addEventListener('click', function (e) {
-    // 좁은 화면에서는 첫 클릭에 메뉴만 펼치고 이동은 막음
-    if (window.innerWidth <= 860) {
-      e.preventDefault();
-      drop.classList.toggle('open');
-    }
+    e.preventDefault();
+    drop.classList.toggle('open');
   });
+  // 메뉴 바깥을 클릭하면 닫힘
   document.addEventListener('click', function (e) {
     if (!drop.contains(e.target)) drop.classList.remove('open');
   });
