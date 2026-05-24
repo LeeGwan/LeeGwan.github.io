@@ -15,19 +15,21 @@
       <li><a href="{{ base | append: 'about/' | relative_url }}">About Me</a></li>
 
       <li class="nav-drop" id="postsDrop">
-        <a href="{{ posts_url | relative_url }}" class="nav-drop-toggle">{{ t.posts }} <span class="dcaret">▾</span></a>
-        <ul class="nav-menu">
-          {% assign groups = docs | group_by: "category" %}
-          {% for g in groups %}
-            {% assign label = g.name %}
-            {% if label == '' or label == nil %}{% assign label = t.posts %}{% endif %}
-            <li><a href="{{ posts_url | relative_url }}#{{ label | slugify }}">{{ label }}</a></li>
+  <a href="{{ '/posts/' | relative_url }}" class="nav-drop-toggle">{{ t.posts }} <span class="dcaret">▾</span></a>
+  <ul class="nav-menu">
+    {% assign groups = docs | group_by: "category" %}
+    {% for g in groups %}
+      <li class="nav-submenu">
+        <a href="{{ '/posts/' | relative_url }}#{{ g.name | slugify }}">{{ g.name }}</a>
+        <ul class="nav-sub-list">
+          {% for post in g.items %}
+            <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>
           {% endfor %}
-          {% if groups.size == 0 %}
-            <li><a href="{{ posts_url | relative_url }}">{{ t.all_posts }}</a></li>
-          {% endif %}
         </ul>
       </li>
+    {% endfor %}
+  </ul>
+</li>
 
       <li><a href="https://github.com/LeeGwan" target="_blank" rel="noopener">GitHub</a></li>
       
