@@ -2,7 +2,7 @@
 layout: default
 lang: ko
 ref: about
-permalink: /about/
+permalink: /ko/about/
 title: "About Me"
 no_sidebar: true
 ---
