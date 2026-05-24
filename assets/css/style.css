@@ -267,8 +267,11 @@ a:hover { text-decoration: underline; }
 .nav-drop-toggle { display: inline-flex; align-items: center; gap: 4px; }
 .dcaret { font-size: .7rem; opacity: .8; }
 .nav-menu {
-  list-style: none; margin: 0; padding: 6px;
-  position: absolute; top: 140%; left: 0; min-width: 210px;
+  list-style: none; margin: 0; 
+  padding: 16px 6px 6px 6px; /* 위쪽 패딩을 늘려 마우스 이동 경로를 확보합니다 */
+  position: absolute; 
+  top: 100%; /* 위치를 상단 바 바로 아래로 붙입니다 */
+  left: 0; min-width: 210px;
   background: #1f2228; border: 1px solid #2c303a; border-radius: 10px;
   box-shadow: 0 12px 30px rgba(0,0,0,.35);
   opacity: 0; visibility: hidden; transform: translateY(-6px);
