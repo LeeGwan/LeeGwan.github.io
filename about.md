@@ -3,12 +3,12 @@ layout: default
 lang: en
 ref: about
 permalink: /about/
-title: "About"
+title: "About Me"
 no_sidebar: true
 ---
 <article class="post profile-page">
   <header class="post-head">
-    <h1 class="post-title">About</h1>
+    <h1 class="post-title">About Me</h1>
   </header>
 
   <div class="profile-card">
