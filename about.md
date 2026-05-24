@@ -29,7 +29,7 @@ no_sidebar: true
       <li>Anti-Cheat driver Analysis</li>
       <li>Hooking Methods (Detours, MinHook, custom hooks)</li>
       <li>Cheat Program Analysis &amp; Research</li>
-      <li>Anti-Cheat Solution Detection Analysis &amp; research</li>
+      <li>Anti-Cheat Solution Detection Analysis &amp; Research</li>
       <li>Windows Code Integrity &amp; Kernel Anti-Debugging Bypass Research</li>
       <li>Oreans Code Virtualization Research</li>
     </ul>
