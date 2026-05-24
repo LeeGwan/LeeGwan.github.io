@@ -4,6 +4,7 @@ lang: ko
 ref: about
 permalink: /ko/about/
 title: "소개"
+no_sidebar: true
 ---
 <article class="post">
   <header class="post-head">

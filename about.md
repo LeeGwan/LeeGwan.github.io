@@ -4,6 +4,7 @@ lang: en
 ref: about
 permalink: /about/
 title: "About"
+no_sidebar: true
 ---
 <article class="post">
   <header class="post-head">

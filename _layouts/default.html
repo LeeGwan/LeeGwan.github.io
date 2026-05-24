@@ -3,12 +3,20 @@
 {% include head.html %}
 <body>
   {% include topnav.html %}
-  <main class="layout">
-    {% include sidebar.html %}
-    <div class="content">
-      {{ content }}
-    </div>
-  </main>
+  {% if page.no_sidebar %}
+    <main class="layout layout-plain">
+      <div class="content content-wide">
+        {{ content }}
+      </div>
+    </main>
+  {% else %}
+    <main class="layout">
+      {% include sidebar.html %}
+      <div class="content">
+        {{ content }}
+      </div>
+    </main>
+  {% endif %}
   {% include footer.html %}
   <script src="{{ '/assets/js/sidebar.js' | relative_url }}"></script>
 </body>
