@@ -1,30 +1,30 @@
 {% comment %}
-  현재 언어의 글들을 category 별로 묶어 사이드바에 자동으로 표시합니다.
-  글 front matter 에 category 와 weight(정렬용 숫자)를 넣으면 여기에 반영됩니다.
-  새 글을 추가하면 사이드바에도 자동으로 나타납니다 — 따로 손댈 필요 없음.
+  2단 구조 사이드바
+  - 글 페이지: "현재 글의 category" 하나만 보여주고, 그 안을 group(소단원)으로 묶어 접기/펴기
+  - 홈 등 category 없는 페이지: 카테고리 목록(각 카테고리의 첫 글로 링크)
+  새 글을 추가하면 자동 반영됩니다.
 {% endcomment %}
 {% assign lang = page.lang | default: site.default_lang %}
 {% assign t = site.data.translations[lang] %}
 {% if lang == 'ko' %}{% assign docs = site.ko %}{% else %}{% assign docs = site.en %}{% endif %}
 
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-title">{{ site.title }}</div>
-
-  {% assign groups = docs | group_by: "category" %}
+{% if page.category %}
+  {% comment %} ── 글 페이지: 현재 카테고리만 ── {% endcomment %}
+  <div class="sidebar-title">{{ page.category }}</div>
+  {% assign cat_items = docs | where: "category", page.category | sort: "weight" %}
+  {% assign groups = cat_items | group_by: "group" %}
   {% for group in groups %}
     {% assign label = group.name %}
     {% if label == '' or label == nil %}{% assign label = t.posts %}{% endif %}
-    {% comment %} 현재 보고 있는 글이 이 그룹에 속하면 펼친 상태로 시작 {% endcomment %}
     {% assign is_open = false %}
     {% for item in group.items %}{% if item.url == page.url %}{% assign is_open = true %}{% endif %}{% endfor %}
-
     <div class="side-group {% if is_open %}open{% endif %}">
       <button class="side-group-head" type="button">
         <span>{{ label }}</span><span class="caret">▸</span>
       </button>
       <ul class="side-list">
-        {% assign sorted = group.items | sort: "weight" %}
-        {% for item in sorted %}
+        {% for item in group.items %}
           <li class="{% if item.url == page.url %}active{% endif %}">
             <a href="{{ item.url | relative_url }}">{{ item.title }}</a>
           </li>
@@ -32,8 +32,14 @@
       </ul>
     </div>
   {% endfor %}
-
-  {% if docs.size == 0 %}
-    <p class="side-empty">{{ t.no_posts }}</p>
-  {% endif %}
+{% else %}
+  {% comment %} ── 홈 등: 카테고리 디렉터리 ── {% endcomment %}
+  <div class="sidebar-title">{{ site.title }}</div>
+  {% assign cats = docs | group_by: "category" %}
+  {% for c in cats %}
+    {% assign first = c.items | sort: "weight" | first %}
+    <a class="side-cat-link" href="{{ first.url | relative_url }}">{{ c.name }}</a>
+  {% endfor %}
+  {% if docs.size == 0 %}<p class="side-empty">{{ t.no_posts }}</p>{% endif %}
+{% endif %}
 </aside>
