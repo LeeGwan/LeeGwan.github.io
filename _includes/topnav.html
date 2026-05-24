@@ -14,27 +14,26 @@
     <ul class="nav-links" id="navLinks">
       <li><a href="{{ base | append: 'about/' | relative_url }}">About Me</a></li>
 
+      {% comment %}
+        Posts 드롭다운: 카테고리는 글에서 자동으로 모읍니다.
+        카테고리를 누르면 그 카테고리의 "첫 글"(weight 가 가장 작은 글)로 이동합니다.
+        그 글 페이지의 왼쪽 사이드바에서 같은 카테고리의 다른 글들로 이동할 수 있습니다.
+      {% endcomment %}
       <li class="nav-drop" id="postsDrop">
-  <a href="{{ '/posts/' | relative_url }}" class="nav-drop-toggle">{{ t.posts }} <span class="dcaret">▾</span></a>
-  <ul class="nav-menu">
-    {% assign groups = docs | group_by: "category" %}
-    {% for g in groups %}
-      <li class="nav-submenu">
-        <a href="{{ '/posts/' | relative_url }}#{{ g.name | slugify }}">{{ g.name }}</a>
-        <ul class="nav-sub-list">
-          {% for post in g.items %}
-            <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>
+        <a href="{{ posts_url | relative_url }}" class="nav-drop-toggle">{{ t.posts }} <span class="dcaret">▾</span></a>
+        <ul class="nav-menu">
+          {% assign groups = docs | group_by: "category" %}
+          {% for g in groups %}
+            {% assign label = g.name %}{% if label == '' or label == nil %}{% assign label = t.posts %}{% endif %}
+            {% assign firstpost = g.items | sort: "weight" | first %}
+            <li><a href="{{ firstpost.url | relative_url }}">{{ label }}</a></li>
           {% endfor %}
+          {% if groups.size == 0 %}<li><a href="{{ posts_url | relative_url }}">{{ t.all_posts }}</a></li>{% endif %}
         </ul>
       </li>
-    {% endfor %}
-  </ul>
-</li>
 
-      <li><a href="https://github.com/LeeGwan" target="_blank" rel="noopener">GitHub</a></li>
-      
+      <li><a href="https://github.com/{{ site.github_username }}" target="_blank" rel="noopener">GitHub</a></li>
       <li><a href="https://www.linkedin.com/in/gwanho-lee-731319395/" target="_blank" rel="noopener">LinkedIn</a></li>
-
       <li class="nav-lang">{% include lang-switch.html %}</li>
     </ul>
   </div>
