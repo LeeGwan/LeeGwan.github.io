@@ -20,7 +20,7 @@
         그 글 페이지의 왼쪽 사이드바에서 같은 카테고리의 다른 글들로 이동할 수 있습니다.
       {% endcomment %}
       <li class="nav-drop" id="postsDrop">
-        <a href="{{ posts_url | relative_url }}" class="nav-drop-toggle">{{ t.posts }} <span class="dcaret">▾</span></a>
+        <a href="#" class="nav-drop-toggle" role="button" aria-haspopup="true">{{ t.posts }} <span class="dcaret">▾</span></a>
         <ul class="nav-menu">
           {% assign groups = docs | group_by: "category" %}
           {% for g in groups %}
