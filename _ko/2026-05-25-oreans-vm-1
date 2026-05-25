@@ -1,0 +1,243 @@
+---
+title: "코드 가상화(Code Virtualization) 기초 구조 연구 — 1부: VM 구조"
+date: 2026-05-25
+category: "Oreans Code Virtualization"
+group: "VM Structure"
+weight: 1
+ref: oreans-vm-1
+tags: [Reversing, Code Virtualization, Oreans]
+summary: "코드 가상화 바이너리의 VCPU/VCODE 구조와 Control Code · Main Handler · Opcode Handler의 동작을 분석한 스터디 노트."
+---
+
+* TOC
+{:toc}
+
+## 1. 공부를 시작하며: 왜 코드 가상화인가?
+
+1년 전 시스템 레벨의 보호 기법을 들여다보며 공부할 때, 리버싱을 방어하는 여러 기술들을 접하게 되었습니다. 단순한 API 탐지나 디버깅 방지 기법들은 이미 널리 알려진 우회 방법이 많아 방어에 한계가 있었습니다.
+
+결국 안티 리버싱의 핵심은 '완벽한 차단'이 아니라 '분석에 걸리는 시간을 기하급수적으로 늘려 분석을 포기하게 만드는 것'이라는 점을 깨달았습니다. 그중에서도 가장 뚫기 까다로운 벽으로 꼽히는 코드 가상화(Code Virtualization) 기법이 어떻게 동작하는지, 그 기초 구조를 공부하고 분석한 내용을 정리해 보았습니다.
+
+## 2. 코드 가상화 바이너리의 구조적 이해
+
+상용 프로텍터가 적용된 가상화 바이너리를 뜯어보면, 우리가 알던 일반적인 Intel CPU 명령어 체계로만 동작하지 않는다는 것을 알 수 있습니다. 내부적으로 자체적인 가상 머신(Virtual Machine) 환경을 기동하기 위해 크게 두 가지 새로운 섹션을 추가하는 구조를 취하고 있었습니다.
+
+- **.VCPU 섹션**: 가상 머신의 런타임 환경을 구축하고 가상 명령어를 해석하고 실행하는 엔진 본체입니다.
+- **.VCODE 섹션**: 원본 어셈블리 코드가 VCPU만이 읽을 수 있는 커스텀 명령어(Bytecode) 셋으로 변환되어 저장된 데이터 영역입니다.
+
+오리지널 코드 영역(.text)의 보호 대상 함수들은 가상 머신 진입을 위한 엔트리 포인트(jmp .VCPU)만 남긴 채 NOP 처리되거나 쓰레기 값으로 덮입니다. 제어권이 가상 머신으로 넘어가는 순간부터 완전히 새로운 룰이 적용되는 셈입니다.
+
+### Real CPU → VCPU → VCODE 전체 흐름도
+
+[![VM 전체 흐름도](/assets/img/vm_flowchart.png)](/assets/img/vm_flowchart.png)
+*Real CPU → VM Entry → Control Code → Main Handler → Opcode Handler 전체 흐름*
+
+위의 흐름도에서 보듯이, 실제 CPU에서 시작한 제어 흐름이 VM Entry Point를 거쳐 Control Code로 진입하고, Context 영역이 초기화되며, VCODE 영역의 바이트코드를 Main Handler가 반복적으로 읽어 핸들러로 디스패치하는 완전히 새로운 환경이 구축됩니다.
+
+## 3. Virtual CPU 아키텍처 파헤치기
+
+분석 문서마다 가상 머신의 구조를 부르는 용어가 조금씩 다르지만, 저는 코드를 따라가며 직관적으로 이해한 방식대로 역할에 따라 크게 진입점, 메인 루프, 명령어 처리부 세 가지 요소로 나누어 정리했습니다.
+
+먼저 한 가지 중요한 전제를 짚고 갑니다. 이 VCPU는 **레지스터 머신(Register Machine)** 구조입니다. 즉 스택에 값을 쌓았다 빼는 방식이 아니라, 컨텍스트 구조 안에 자리가 고정된 가상 레지스터(REG_EAX, REG_EBP, REG_TMP 등)를 직접 인덱싱해서 읽고 쓰는 방식으로 동작합니다. (실제로 핸들러를 따라가 보면 명령어들이 `mov REG_TMP, REG_EBP` 처럼 이름 붙은 가상 레지스터를 직접 다루는 것을 볼 수 있습니다. 뒤의 3.3에서 확인합니다.)
+
+### 3.1. Control Code (진입 및 가상 환경 세팅)
+
+Real CPU 환경에서 VCPU 환경으로 제어권이 넘어왔을 때 가장 먼저 딱 한 번 실행되는 진입부입니다.
+
+[![Control Code 디스어셈블리](/assets/img/vm_control_code.png)](/assets/img/vm_control_code.png)
+*Control Code 디스어셈블리와 진입 직전의 Real CPU 레지스터 상태*
+
+위 디스어셈블리 화면을 보면 Control Code의 실제 동작 과정을 명확히 알 수 있습니다.
+
+가장 먼저 `pushad`와 `pushfd` 명령어를 통해 Real CPU가 사용하던 모든 물리 레지스터(EAX~EDI)와 상태 플래그(EFLAGS)를 **스택에 백업**하는 것으로 시작합니다. 오른쪽 레지스터 창을 보면 가상 환경으로 넘어가기 직전의 실제 CPU 상태 값들을 확인할 수 있습니다 (EAX=CCCCCCCC, EBP=0019FEE4, ESI=00411348, EFLAGS=00000216 등).
+
+그 다음 이 스택에 백업된 값들이 가상 머신 컨텍스트(0x41E600) 영역으로 **복사**됩니다. 이 초기값들은 두 가지 역할을 합니다:
+
+- **주소 계산의 기준점**: Operand Handler가 주소 연산을 할 때 사용 (예: `VM_EBP - 0x14` 계산)
+- **VM 레지스터의 초기값**: 초기 상태를 기반으로 연산 시작
+
+이후 Instruction Handler들이 연산 결과로 이 초기값들을 **계속 덮어쓰**므로, Context의 슬롯들은 실시간으로 VM 상태를 반영합니다.
+
+동시에 가상 머신이 런타임에 사용할 Virtual Machine Context Address(핸들러 베이스 주소)를 세팅하고(`add edi, 41E600`), 핸들러 갯수와 앞으로 실행할 가상 명령어들이 담긴 .VCODE 섹션의 시작 주소를 레지스터(ESI)에 준비합니다. 여기서 **ESI는 가상 프로그램 카운터(VPC)** 역할을 하며, 이후 메인 루프에서 .VCODE를 읽어 나가는 기준이 됩니다.
+
+초기화가 끝나면 마지막 부분에서 `jmp target.42122C`(Jmp Main Handler)를 통해 본격적인 가상 머신의 메인 루프로 제어권을 넘기게 됩니다.
+
+저장 직전(컨텍스트가 아직 모두 00으로 비어있는 상태)의 모습과, Control Code 실행 직후 값이 채워진 모습을 비교하면 다음과 같습니다.
+
+[![저장 전 Context (모두 00)](/assets/img/vm_context_before.png)](/assets/img/vm_context_before.png)
+*저장 전: 0x41E600 컨텍스트 영역이 모두 00으로 비어 있는 상태*
+
+[![저장 후 Context (값 매핑)](/assets/img/vm_context_after.png)](/assets/img/vm_context_after.png)
+*저장 후: pushad로 백업한 Real CPU 레지스터 값들이 그대로 복사되어 들어온 모습*
+
+0x41E600 대역의 메모리를 덤프해 보면, 조금 전 `pushad`로 **스택에 백업했던 Real CPU의 레지스터 값들이 그대로 복사되어 들어온 것**을 확인할 수 있습니다. 이 Context 영역의 각 슬롯들이 **VM의 독립적인 레지스터**가 됩니다.
+
+**Context 슬롯들의 역할:**
+
+- **초기 단계**: VM_EAX=CCCCCCCC, VM_EBP=0019FEE4... (CPU 초기값으로 복사)
+  - *왜?: 함수 중간에 VM이 진입하므로, 원본 함수의 레지스터 상태를 기준점으로 필요*
+- **실행 단계**: Operand Handler가 초기값을 읽어 주소/값을 계산 → 스택에 저장
+  - *예: VM_EBP(0019FEE4) - 0x14 같은 주소 계산에 초기값 사용*
+- **저장 단계**: Instruction Handler가 스택 값을 가져와 Context 슬롯에 저장 (초기값 덮어쓰기)
+  - *결과값이 Context에 저장되어 VM의 최신 상태 반영*
+- **반복**: 매 핸들러마다 Context 값이 계속 갱신되며 VM 상태 반영
+  - *이 복잡한 구조가 왜 필요한지, 각 핸들러가 구체적으로 어떻게 동작하는지는 다음 장(Handler 분석)에서 상세히 다룹니다*
+
+이제 VCPU는 이 Context 공간의 슬롯들을 바탕으로 가상 명령어를 처리할 준비를 마쳤습니다.
+
+참고로 이 Context 영역의 4바이트(DWORD) 단위 매핑을 직접 떠 보면 대략 다음과 같았습니다 (저장 직전 레지스터 값 기준).
+
+| 오프셋 | 덤프 값 (리틀엔디안) | 해석 값 | 레지스터 |
+|--------|---------------------|---------|----------|
+| +0x00 | E4 FE 19 00 | 0019FEE4 | EBP |
+| +0x04 | E4 FE 19 00 | 0019FEE4 | EDI |
+| +0x08 | 00 B0 2D 00 | 002DB000 | EBX |
+| +0x0C | CC CC CC CC | CCCCCCCC | EAX |
+| +0x10 | 48 13 41 00 | 00411348 | ESI |
+| +0x14 | 28 7B 53 00 | 00537B28 | EDX |
+| +0x18 | 00 00 00 00 | 00000000 | ECX |
+| +0x1C | 16 02 00 00 | 00000216 | EFLAGS |
+
+저장 순서가 원래 `pushad` 순서(EAX,ECX,EDX,EBX,ESP,EBP,ESI,EDI)와 다른데, 이는 VCPU가 자체적으로 정한 레지스터 배치(순서 셔플링)를 따르기 때문입니다.
+
+[![.VCODE 바이트코드 덤프](/assets/img/vm_vcode.png)](/assets/img/vm_vcode.png)
+*.VCODE 영역: 일반 어셈블리가 아닌 자체 Bytecode로 인코딩된 데이터*
+
+Control Code에서 세팅했던 .VCODE 영역의 메모리 덤프입니다. 우리가 알던 일반적인 어셈블리 명령어가 아니라, 자체적인 Bytecode 형태로 인코딩되어 있는 것을 확인할 수 있습니다. 기초 환경 세팅을 마친 가상 머신은 이제 이 영역으로 넘어가 데이터를 읽어오기 시작합니다.
+
+### 3.2. Main Handler (VM Dispatcher)
+
+Control Code에 의해 가상 환경이 세팅된 후 진입하는 메인 루프입니다. 가상 명령어를 처리하기 위해 Fetch - Decode - Execute 단계를 무한히 반복합니다.
+
+[![Main Handler CFG](/assets/img/vm_main_handler.png)](/assets/img/vm_main_handler.png)
+*Main Handler의 Fetch - Decode - Execute 컨트롤 플로우 그래프*
+
+위 컨트롤 플로우 그래프(CFG)를 보면 Main Handler가 가상 명령어를 어떻게 페치하고 해독하는지 그 흐름이 명확히 드러납니다.
+
+**Fetch Instruction**: 가장 먼저 `lodsb` 명령어를 사용해 .VCODE 섹션에서 1바이트의 가상 Opcode를 읽어와 AL 레지스터에 담습니다. `lodsb`는 ESI가 가리키는 위치에서 읽고 ESI를 자동으로 1 증가시키는 명령이므로, 여기서 **ESI가 곧 가상 프로그램 카운터(VPC)** 역할을 한다는 것을 알 수 있습니다.
+
+**Decode Instruction**: 가져온 값을 그대로 쓰지 않습니다. 이어지는 명령어들을 보면 `sub al, bl`, `add al, bh` 등 여러 단계의 산술 연산을 거치며 암호화된 Opcode를 복호화(Decryption)하는 과정을 거칩니다. 중간중간 섞여 있는 `push`, `add esp, 2`, `mov [esp], bx` 같은 `[esp]` 조작 코드들은 가상 레지스터를 다루는 연산이 아니라, **복호화 과정의 임시 계산 + 분석을 방해하기 위한 난독화(Obfuscation) 및 정크 코드**입니다. 최종적으로 Finish DECODE Instruction 주석이 달린 `movzx eax, al`을 통해 온전하게 복호화된 인덱스 값이 EAX 레지스터에 저장됩니다.
+
+**Execute Instruction**: 마지막 블록에서 `jmp dword ptr ds:[edi+eax*4]` 명령어를 수행합니다. 여기서 EDI는 OPCODE Handlers Table의 베이스 주소이고, EAX는 방금 복호화한 명령어 인덱스입니다. 즉, 이 연산을 통해 실제 해당 가상 명령어를 처리할 핸들러 주소로 점프(Jump)하여 연산을 지시합니다. 이렇게 인덱스로 테이블을 참조해 핸들러로 분기하는 구조가 바로 이 VCPU가 레지스터 머신 기반 디스패처임을 보여주는 지점입니다.
+
+### 3.3. OPCODE Handlers
+
+Main Handler의 Execute 단계를 통해 분기되어 개별 가상 명령어(mov, add, call 등)를 실제로 처리하는 루틴들입니다.
+
+연구 과정에서 가장 인상 깊었던 점은, 자체 정의한 VCPU는 메모리 주소 지정 방식이 매우 단순하다는 것이었습니다. 예를 들어, `mov [ebp-0x14], ebx` 같은 인덱스 연산 명령어를 한 번에 처리하지 못하고 다음과 같이 쪼개서 처리합니다.
+
+- `mov REG_TMP, REG_EBP` (임시 가상 레지스터에 가상 EBP 복사)
+- `sub REG_TMP, 0x14` (오프셋 연산)
+- `mov [REG_TMP], REG_EBX` (최종 계산된 주소에 값 삽입)
+
+여기서 REG_TMP, REG_EBP, REG_EBX는 모두 앞서 본 0x41E600 컨텍스트 안에 자리가 **고정된 가상 레지스터 슬롯**입니다. Control Code에서 CPU 레지스터를 스택에 백업한 뒤, 컨텍스트로 복사한 그 값들이 바로 이 슬롯들이고, 이후 모든 핸들러들이 이 슬롯들을 직접 읽고 쓰며 연산합니다. 이렇게 고정 위치의 메모리 슬롯을 가상 레지스터로 사용하고, 이름 붙은 레지스터를 직접 인덱싱해서 읽고 쓰는 방식이 바로 **레지스터 머신 구조의 특징**입니다.
+
+#### Operand Handler와 Instruction Handler의 협력 구조
+
+실제로는 핸들러들이 이 컨텍스트 슬롯들에 접근하기 위해 스택을 거칩니다:
+
+1. **Operand Handler** (값/주소 준비)
+   - **초기 값 읽기**: Context에서 VM_EBP 같은 값을 읽음
+   - **주소 계산**: 그 값을 기준으로 연산 (예: `VM_EBP - 0x14` → 메모리 주소 계산)
+   - `mov dword ptr [esp], eax` : 계산 결과를 스택에 저장
+2. **Instruction Handler** (실제 연산 및 저장)
+   - `pop eax` : 스택에서 주소/값을 읽음
+   - 메모리 접근 또는 추가 계산 수행
+   - `mov dword ptr [edx], eax` : **새로운 결과값을 Context([edx])에 저장** ← 초기값 덮어쓰기
+
+즉, **초기 복사된 CPU 값들은 주소 계산의 기준점으로 사용되고, 이후 Instruction Handler가 연산 결과로 계속 덮어씁니다.** 스택은 임시 통로이고 **실제 데이터/상태는 Context의 슬롯들**에 저장되며 계속 갱신됩니다.
+
+단순한 연산 하나가 여러 개의 가상 명령어로 치환되기 때문에, 가상화가 적용된 코드는 원본 대비 파일 크기가 훨씬 팽창할 수밖에 없습니다. 이것이 원본 코드를 그대로 덮어쓰지 못하고 .VCODE라는 별도 섹션을 생성하는 결정적 이유였습니다.
+
+실제 스크립트를 사용해서 해본 결과 다음과 같은 트레이스 로그를 얻을 수 있었습니다.
+
+```
+=== VM Analysis ===
+[0] opcode=0xedL handler=0x41f566 EAX=0x2d
+[1] opcode=0x80L handler=0x421482 EAX=0x89
+[2] opcode=0x49L handler=0x4202e0 EAX=0x32
+[3] opcode=0x6L handler=0x41f566 EAX=0x2d
+[4] opcode=0x99L handler=0x421482 EAX=0x89
+[5] opcode=0x62L handler=0x4202e0 EAX=0x32
+[6] opcode=0x22L handler=0x41f566 EAX=0x2d
+[7] opcode=0xb5L handler=0x421482 EAX=0x89
+[8] opcode=0x7eL handler=0x4202e0 EAX=0x32
+[9] opcode=0x3aL handler=0x41f566 EAX=0x2d
+[10] opcode=0xcdL handler=0x421482 EAX=0x89
+[11] opcode=0x96L handler=0x4202e0 EAX=0x32
+[12] opcode=0x54L handler=0x41f566 EAX=0x2d
+[13] opcode=0xe7L handler=0x421482 EAX=0x89
+[14] opcode=0xdbL handler=0x4202e0 EAX=0x32
+[15] opcode=0x30L handler=0x4202ce EAX=0x58
+[16] opcode=0x10L handler=0x41f566 EAX=0x2d
+[17] opcode=0xa3L handler=0x421482 EAX=0x89
+[18] opcode=0x6cL handler=0x4202e0 EAX=0x32
+[19] opcode=0x2dL handler=0x41f566 EAX=0x2d
+[20] opcode=0xc0L handler=0x421482 EAX=0x89
+[21] opcode=0x89L handler=0x4202e0 EAX=0x32
+[22] opcode=0x4bL handler=0x41f566 EAX=0x2d
+[23] opcode=0xdeL handler=0x421482 EAX=0x89
+[24] opcode=0xa7L handler=0x4202e0 EAX=0x32
+[25] opcode=0x66L handler=0x41f566 EAX=0x2d
+[26] opcode=0xf9L handler=0x421482 EAX=0x89
+[27] opcode=0xbL handler=0x4202e0 EAX=0x32
+[28] opcode=0xbaL handler=0x41ec7e EAX=0x76
+[29] opcode=0xe2L handler=0x41fae3 EAX=0x9b
+[30] opcode=0x8fL handler=0x41fb68 EAX=0x5e
+[31] opcode=0x7aL handler=0x41fdb4 EAX=0x1d
+[32] opcode=0xeeL handler=0x4218bf EAX=0x75
+[33] opcode=0x2fL handler=0x41fb68 EAX=0x5e
+[34] opcode=0x82L handler=0x4207e6 EAX=0x33
+[35] opcode=0x99L handler=0x421482 EAX=0x89
+[36] opcode=0xc1L handler=0x41fae3 EAX=0x9b
+[37] opcode=0xf2L handler=0x41fb68 EAX=0x5e
+[38] opcode=0x79L handler=0x41fdb4 EAX=0x1d
+[39] opcode=0x99L handler=0x421482 EAX=0x89
+[40] opcode=0x93L handler=0x4202e0 EAX=0x32
+[41] opcode=0xe1L handler=0x41fb68 EAX=0x5e
+[42] opcode=0xa4L handler=0x4208b2 EAX=0x94
+[43] opcode=0x1L handler=0x41ee2a EAX=0x7a
+[44] opcode=0x3dL handler=0x41f566 EAX=0x2d
+[45] opcode=0xc3L handler=0x421482 EAX=0x89
+[46] opcode=0xa6L handler=0x41fb23 EAX=0x25
+[47] opcode=0x65L handler=0x41f566 EAX=0x2d
+[48] opcode=0xebL handler=0x421482 EAX=0x89
+[49] opcode=0xceL handler=0x41fb23 EAX=0x25
+[50] opcode=0x90L handler=0x41f566 EAX=0x2d
+[51] opcode=0x16L handler=0x421482 EAX=0x89
+[52] opcode=0xf9L handler=0x41fb23 EAX=0x25
+[53] opcode=0xbaL handler=0x41f566 EAX=0x2d
+[54] opcode=0x40L handler=0x421482 EAX=0x89
+[55] opcode=0x23L handler=0x41fb23 EAX=0x25
+[56] opcode=0xe1L handler=0x41f566 EAX=0x2d
+[57] opcode=0x67L handler=0x421482 EAX=0x89
+[58] opcode=0x4aL handler=0x41fb23 EAX=0x25
+[59] opcode=0x8L handler=0x41f566 EAX=0x2d
+[60] opcode=0x8eL handler=0x421482 EAX=0x89
+[61] opcode=0x71L handler=0x41fb23 EAX=0x25
+[62] opcode=0x2dL handler=0x41f566 EAX=0x2d
+[63] opcode=0xb3L handler=0x421482 EAX=0x89
+[64] opcode=0x96L handler=0x41fb23 EAX=0x25
+[65] opcode=0x56L handler=0x41f566 EAX=0x2d
+[66] opcode=0xdcL handler=0x421482 EAX=0x89
+[67] opcode=0xbfL handler=0x41fb23 EAX=0x25
+[68] opcode=0x7cL handler=0x41f566 EAX=0x2d
+[69] opcode=0x2L handler=0x421482 EAX=0x89
+[70] opcode=0xd2L handler=0x41fb23 EAX=0x25
+[71] opcode=0x68L handler=0x41f6a6 EAX=0x1a
+End Result= 0x12345678
+```
+
+이 로그에서 한 가지 패턴이 눈에 띕니다. 초반부([0]~[27])를 보면 `0x41f566 → 0x421482 → 0x4202e0` 세 핸들러가 계속 3개 단위로 반복되고 있습니다.
+
+각 핸들러의 역할을 보면:
+
+- `0x41f566`: Operand Handler — .VCODE에서 바이트코드를 읽어 스택에 값 저장
+- `0x421482`: Operand Handler — 추가 정보를 읽거나 계산해서 스택에 저장
+- `0x4202e0`: Instruction Handler — 스택의 값을 가져와 컨텍스트의 VM 레지스터 슬롯에 실제로 저장/연산
+
+이는 원본의 단순한 동작(예: 상수를 가상 레지스터에 저장)조차도 여러 단계의 operand handler + instruction handler로 쪼개져 처리된다는 것을 보여줍니다. 앞서 말한 "단순 연산 하나가 여러 가상 명령어로 팽창한다"는 점이 트레이스에서도 그대로 드러나는 셈입니다.
+
+마지막 줄의 `End Result= 0x12345678`은 이 가상화된 코드 조각이 모든 핸들러를 거쳐 최종적으로 계산해 낸 결과값입니다. 이 값은 컨텍스트(0x41E600 대역)의 어느 VM 레지스터 슬롯(예: VM_EAX, VM_EDX)에 저장되어 있을 것입니다. 즉, 사람이 보기엔 매우 짧은 원본 연산이 실제로는 70개가 넘는 핸들러 호출을 거쳐 하나의 결과를 컨텍스트 슬롯에 저장해낸 것입니다.
+
+이렇게 짧은 코드를 처리하기 위해 수많은 핸들러가 동원되어 결과가 나왔습니다. 다음번에는 각 핸들러가 구체적으로 어떤 역할을 하는지 하나씩 알아보겠습니다.
