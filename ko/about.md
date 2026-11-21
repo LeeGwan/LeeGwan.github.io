@@ -36,8 +36,8 @@ no_sidebar: true
 
     <h2>Jobs</h2>
     <ul>
-      <li>킹스정보통신 — Windows Security Developer (Apr 2025)</li>
-      <li>Freelance Reverse Engineer — Game Security (Dec 2023 – Feb 2025)</li>
+      <li>킹스정보통신 — Windows Security Developer (2026.04)</li>
+      <li>Freelance Reverse Engineer — Game Security (2023.12 ~ 2025.02)</li>
     </ul>
 
     <h2>Interests</h2>
