@@ -48,5 +48,32 @@ no_sidebar: true
       <li>Game Anti-Cheat &amp; Cheat Development</li>
       <li>AI</li>
     </ul>
+
+       <h2>Project</h2>
+    <ul>
+      <li>
+        <strong>Game Anti-Cheat Solution</strong> (Oct 2026 – Present) · Team of 6
+        <ul>
+          <li><strong>Server</strong>
+            <ul>
+              <li>SOC — Wonjun Choi</li>
+              <li>EPP — Jeongmin Kim</li>
+              <li>EDR — Yoel Won</li>
+            </ul>
+          </li>
+          <li><strong>Client</strong>
+            <ul>
+              <li>Windows Kernel Driver — Gwanho Lee</li>
+              <li>User-mode Agent &amp; Game SDK (service, server communication, game DLL) — Hyeongi Seo</li>
+            </ul>
+          </li>
+          <li><strong>Game</strong>
+            <ul>
+              <li>Game Developer — Yongseok Jang</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
   </div>
 </article>
