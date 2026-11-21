@@ -151,6 +151,10 @@ classifyOut->actionType = FWP_ACTION_CONTINUE;   // INSPECTION이므로 판정�
 
 WFP는 TDI/NDIS 필터처럼 네트워크 스택에 직접 끼어들지 않고, 필터와 콜아웃을 등록하는 방식으로 네트워크 트래픽을 확인하거나 제어할 수 있습니다. 연결 단위로 확인만 하는 경우에는 `ALE_AUTH_CONNECT` 레이어에 INSPECTION 콜아웃을 등록하면 PID, IP, 포트, 프로세스 경로를 간단하게 얻을 수 있습니다. 다만 `classifyFn`은 높은 IRQL에서 호출될 수 있으므로, 사용할 API는 MSDN의 요구 사항을 읽어본 후 어떻게 짜야 할지 정해야 합니다. 또한 콜아웃 등록/해제 순서를 지켜야 합니다.
 
+## 7. Source Code
+
+- **Link:** [https://github.com/LeeGwan/AnticheatSolution_Client/blob/main/AntiCheatDriver/AntiCheatDriver/guard/guard_net.c]([https://github.com/LeeGwan/VM-Devirtualizer-Pin.git](https://github.com/LeeGwan/AnticheatSolution_Client/blob/main/AntiCheatDriver/AntiCheatDriver/guard/guard_net.c))
+  
 ## 참고
 
 - [geunyeong's blog – #1 WFP - 개요](https://geun-yeong.tistory.com/55)
