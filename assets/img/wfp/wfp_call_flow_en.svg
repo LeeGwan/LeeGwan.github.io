@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1040" width="1280" height="1040" font-family="'Segoe UI', 'Noto Sans', Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#777"/></marker>
+  </defs>
+  <rect width="1280" height="1040" fill="#fff"/>
+
+  <!-- lifelines -->
+  <g stroke="#999" stroke-width="1.5" stroke-dasharray="5,5">
+    <line x1="136" y1="128" x2="136" y2="975"/>
+    <line x1="449" y1="128" x2="449" y2="975"/>
+    <line x1="762" y1="128" x2="762" y2="975"/>
+    <line x1="1103" y1="128" x2="1103" y2="975"/>
+  </g>
+
+  <!-- participants -->
+  <g text-anchor="middle">
+    <rect x="41" y="57" width="190" height="70" rx="6" fill="#e8eef6" stroke="#1f4e79" stroke-width="2.5"/>
+    <text x="136" y="89" font-size="22" font-weight="700" fill="#1f4e79">tcpip.sys</text>
+    <text x="136" y="114" font-size="15" fill="#666">Network stack</text>
+
+    <rect x="354" y="57" width="190" height="70" rx="6" fill="#e8eef6" stroke="#1f4e79" stroke-width="2.5"/>
+    <text x="449" y="89" font-size="22" font-weight="700" fill="#1f4e79">Filter Engine</text>
+    <text x="449" y="114" font-size="15" fill="#666">Kernel classifier</text>
+
+    <rect x="667" y="57" width="190" height="70" rx="6" fill="#e8eef6" stroke="#1f4e79" stroke-width="2.5"/>
+    <text x="762" y="89" font-size="22" font-weight="700" fill="#1f4e79">My Filter</text>
+    <text x="762" y="114" font-size="15" fill="#666">Policy in BFE</text>
+
+    <rect x="1008" y="57" width="190" height="70" rx="6" fill="#1f4e79" stroke="#1f4e79" stroke-width="2.5"/>
+    <text x="1103" y="89" font-size="22" font-weight="700" fill="#fff">Callout Driver</text>
+    <text x="1103" y="114" font-size="15" fill="#fff">My .sys</text>
+  </g>
+
+  <!-- driver load box -->
+  <rect x="41" y="156" width="1195" height="143" rx="6" fill="#f5f5f5" stroke="#ccc" stroke-width="2"/>
+  <text x="56" y="184" font-size="18" font-weight="700" fill="#666">On driver load (DriverEntry)</text>
+  <line x1="1100" y1="215" x2="462" y2="215" stroke="#777" stroke-width="2" marker-end="url(#g)"/>
+  <text x="776" y="206" font-size="17" fill="#444" text-anchor="middle">FwpsCalloutRegister3 (register calloutKey, classifyFn)</text>
+  <line x1="1100" y1="265" x2="775" y2="265" stroke="#777" stroke-width="2" marker-end="url(#g)"/>
+  <text x="932" y="256" font-size="17" fill="#444" text-anchor="middle">FwpmCalloutAdd0 / FwpmFilterAdd0</text>
+
+  <text x="56" y="341" font-size="18" font-weight="700" fill="#1f4e79">On every connection</text>
+
+  <!-- activation bars -->
+  <rect x="441" y="390" width="17" height="506" fill="#e8eef6" stroke="#1f4e79" stroke-width="1.5"/>
+  <rect x="753" y="469" width="17" height="109" fill="#e8eef6" stroke="#1f4e79" stroke-width="1.5"/>
+  <rect x="1095" y="658" width="17" height="139" fill="#e8eef6" stroke="#1f4e79" stroke-width="1.5"/>
+
+  <!-- step markers style -->
+  <g font-size="15" font-weight="700" fill="#fff" text-anchor="middle">
+    <circle cx="166" cy="374" r="13" fill="#1f4e79"/><text x="166" y="379">1</text>
+    <circle cx="479" cy="454" r="13" fill="#1f4e79"/><text x="479" y="459">2</text>
+    <circle cx="479" cy="563" r="13" fill="#1f4e79"/><text x="479" y="568">3</text>
+    <circle cx="479" cy="642" r="13" fill="#1f4e79"/><text x="479" y="647">4</text>
+    <circle cx="479" cy="781" r="13" fill="#1f4e79"/><text x="479" y="786">5</text>
+    <circle cx="166" cy="881" r="13" fill="#1f4e79"/><text x="166" y="886">6</text>
+  </g>
+
+  <!-- 1 -->
+  <line x1="139" y1="390" x2="436" y2="390" stroke="#1f4e79" stroke-width="3" marker-end="url(#a)"/>
+  <text x="292" y="380" font-size="18" font-weight="700" fill="#1f4e79" text-anchor="middle">Classify request</text>
+  <text x="292" y="412" font-size="15" fill="#666" text-anchor="middle">connect() → ALE_AUTH_CONNECT_V4</text>
+
+  <!-- 2 -->
+  <line x1="458" y1="469" x2="749" y2="469" stroke="#1f4e79" stroke-width="3" marker-end="url(#a)"/>
+  <text x="605" y="460" font-size="18" font-weight="700" fill="#1f4e79" text-anchor="middle">Check filters on layer</text>
+  <text x="605" y="491" font-size="15" fill="#666" text-anchor="middle">Highest-weight sublayer first</text>
+
+  <rect x="785" y="484" width="266" height="69" rx="4" fill="#fff" stroke="#4a78b0" stroke-width="2"/>
+  <text x="918" y="514" font-size="15" fill="#222" text-anchor="middle">Are all conditions met?</text>
+  <text x="918" y="535" font-size="15" fill="#222" text-anchor="middle">(0 conditions → every connection)</text>
+
+  <!-- 3 -->
+  <line x1="753" y1="578" x2="462" y2="578" stroke="#1f4e79" stroke-width="3" stroke-dasharray="10,6" marker-end="url(#a)"/>
+  <text x="605" y="569" font-size="18" fill="#1f4e79" text-anchor="middle">Return Action</text>
+  <text x="605" y="600" font-size="15" fill="#666" text-anchor="middle">INSPECTION callout, calloutKey = GUID</text>
+
+  <!-- 4 -->
+  <line x1="458" y1="658" x2="1091" y2="658" stroke="#1f4e79" stroke-width="3" marker-end="url(#a)"/>
+  <text x="776" y="648" font-size="18" font-weight="700" fill="#1f4e79" text-anchor="middle">Call classifyFn</text>
+  <text x="776" y="680" font-size="15" fill="#666" text-anchor="middle">Callout with the matching calloutKey</text>
+
+  <rect x="875" y="688" width="209" height="74" rx="4" fill="#fff" stroke="#4a78b0" stroke-width="2"/>
+  <text x="980" y="720" font-size="15" fill="#222" text-anchor="middle">If external IP, send</text>
+  <text x="980" y="741" font-size="15" fill="#222" text-anchor="middle">PID · IP · port · path</text>
+
+  <!-- 5 -->
+  <line x1="1095" y1="797" x2="462" y2="797" stroke="#1f4e79" stroke-width="3" stroke-dasharray="10,6" marker-end="url(#a)"/>
+  <text x="776" y="788" font-size="18" fill="#1f4e79" text-anchor="middle">Return CONTINUE</text>
+  <text x="776" y="819" font-size="15" fill="#666" text-anchor="middle">No verdict (INSPECTION)</text>
+
+  <!-- 6 -->
+  <line x1="441" y1="896" x2="149" y2="896" stroke="#1f4e79" stroke-width="3" marker-end="url(#a)"/>
+  <text x="292" y="887" font-size="18" font-weight="700" fill="#1f4e79" text-anchor="middle">Final result</text>
+  <text x="292" y="918" font-size="15" fill="#666" text-anchor="middle">Permit/block after merging all filters</text>
+
+  <rect x="515" y="916" width="455" height="48" rx="4" fill="#fbe9ea" stroke="#c0392b" stroke-width="2"/>
+  <text x="742" y="946" font-size="16" fill="#c0392b" text-anchor="middle">If conditions fail, steps 3–5 don't happen (no callout)</text>
+</svg>
