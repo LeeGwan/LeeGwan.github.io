@@ -48,5 +48,31 @@ no_sidebar: true
       <li>Game Anti-Cheat &amp; Cheat Development</li>
       <li>AI</li>
     </ul>
+    <h2>프로젝트</h2>
+    <ul>
+      <li>
+        <strong>게임 안티치트 솔루션</strong> (2026.10 – 진행 중) · 6인 팀
+        <ul>
+          <li><strong>서버</strong>
+            <ul>
+              <li>SOC — 최원준</li>
+              <li>EPP — 김정민</li>
+              <li>EDR — 원요엘</li>
+            </ul>
+          </li>
+          <li><strong>클라이언트</strong>
+            <ul>
+              <li>윈도우 커널 드라이버 — 이관호</li>
+              <li>유저모드 에이전트 &amp; 게임 SDK (서비스, 서버 통신, 게임 DLL) — 서현기</li>
+            </ul>
+          </li>
+          <li><strong>게임</strong>
+            <ul>
+              <li>게임 개발 — 장용석</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
   </div>
 </article>
