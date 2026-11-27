@@ -22,7 +22,7 @@ Picture the layout at the end of a PE file:
 
 ```
 [DOS header][NT headers][sections: code/data ...]   <- the "real executable content"
-[WIN_CERTIFICATE header][signature data (PKCS#7)]   <- signature block at the very end
+[WIN_CERTIFICATE header][signature data]   <- signature block at the very end
 ```
 
 Inside the OptionalHeader, the DataDirectory table's **entry #4** (`IMAGE_DIRECTORY_ENTRY_SECURITY`) points to the signature block.
