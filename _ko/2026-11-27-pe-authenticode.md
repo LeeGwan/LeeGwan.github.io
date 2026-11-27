@@ -22,7 +22,7 @@ PE 파일의 끝부분을 그려 보면 이렇다.
 
 ```
 [DOS 헤더][NT 헤더][섹션: 코드/데이터 ...]   <- 여기까지가 "실제 실행 내용"
-[WIN_CERTIFICATE 헤더][서명 데이터(PKCS#7)]  <- 파일 맨 끝에 붙는 서명 블록
+[WIN_CERTIFICATE 헤더][서명 데이터]  <- 파일 맨 끝에 붙는 서명 블록
 ```
 
 OptionalHeader 안의 DataDirectory 테이블에서 **4번 엔트리**(`IMAGE_DIRECTORY_ENTRY_SECURITY`)가 서명 블록의 위치를 가리킨다.
